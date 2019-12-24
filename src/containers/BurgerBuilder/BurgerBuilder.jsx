@@ -4,6 +4,8 @@ import Burger from "../../components/Burger/Burger";
 import BuildControls from "../../components/Burger/BuildControls/BuildControls";
 import Modal from "../../components/UI/Modal/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary/OrderSummary";
+import Spinner from "../../components/UI/Spinner/Spinner";
+import axios from "../../axios-order";
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -12,7 +14,6 @@ const INGREDIENT_PRICES = {
   meat: 1.7
 };
 class BurgerBuilder extends Component {
-
   state = {
     ingredients: {
       salad: 0,
@@ -22,13 +23,14 @@ class BurgerBuilder extends Component {
     },
     totalPrice: 5,
     purchaseable: false,
-    purchasing: false
+    purchasing: false,
+    loading: false
   };
 
   updatePurchaseState(ingredients) {
     const sum = Object.keys(ingredients)
       .map(igKey => {
-       // console.log('map:'+ingredients[igKey]);
+        // console.log('map:'+ingredients[igKey]);
         return ingredients[igKey];
       })
       .reduce((sum, el) => {
@@ -77,9 +79,28 @@ class BurgerBuilder extends Component {
     this.setState({ purchasing: false });
   };
 
-  purchaseContinueHandler =()=>{
-    alert('continue!!!');
-  }
+  purchaseContinueHandler = () => {
+    // alert('continue!!!');
+    this.setState({ loading: true });
+    const order = {
+      ingredients: this.state.ingredients,
+      price: this.state.totalPrice,
+      customer: {
+        name: "Erdinç Demirok",
+        address: {
+          street: "T",
+          zipCode: "1",
+          country: "Mars"
+        },
+        email: "1@1.com"
+      },
+      deliveryMethod: "fastest"
+    };
+    axios
+      .post("/orders.json", order)
+      .then(response => this.setState({ loading: false, purchasing: false }))
+      .catch(error => this.setState({ loading: false, purchasing: false }));
+  };
 
   render() {
     //console.log('ing='+this.state.ingredients['salad']);
@@ -87,17 +108,31 @@ class BurgerBuilder extends Component {
       ...this.state.ingredients
     };
     for (let key in disabledInfo) {
-     // console.log('key='+disabledInfo[key])
+      // console.log('key='+disabledInfo[key])
       disabledInfo[key] = disabledInfo[key] <= 0;
     }
+
+    // We can see spinner, when we waiting our order to send database
+    // depends on the internet speed etc.
+    let orderSummary = (
+      <OrderSummary
+        ingredients={this.state.ingredients}
+        purchaseCancelled={this.purchaseCancelHandler}
+        purchaseContinued={this.purchaseContinueHandler}
+        price={this.state.totalPrice}
+      />
+    );
+    if (this.state.loading) {
+      orderSummary = <Spinner />;
+    }
+
     return (
       <Auxiliary>
-        <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
-          <OrderSummary 
-          ingredients={this.state.ingredients}
-          purchaseCancelled={this.purchaseCancelHandler}
-          purchaseContinued={this.purchaseContinueHandler}
-          price={this.state.totalPrice} />
+        <Modal
+          show={this.state.purchasing}
+          modalClosed={this.purchaseCancelHandler}
+        >
+          {orderSummary}
         </Modal>
         <Burger ingredients={this.state.ingredients} />
         <BuildControls
