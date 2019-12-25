@@ -5,7 +5,7 @@ import BuildControls from "../../components/Burger/BuildControls/BuildControls";
 import Modal from "../../components/UI/Modal/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary/OrderSummary";
 import Spinner from "../../components/UI/Spinner/Spinner";
-import WithErrorHandler from '../../hoc/WithErrorHandler/WithErrorHandler';
+import WithErrorHandler from "../../hoc/WithErrorHandler/WithErrorHandler";
 import axios from "../../axios-order";
 
 const INGREDIENT_PRICES = {
@@ -16,17 +16,25 @@ const INGREDIENT_PRICES = {
 };
 class BurgerBuilder extends Component {
   state = {
-    ingredients: {
-      salad: 0,
-      bacon: 0,
-      cheese: 0,
-      meat: 0
-    },
+    ingredients: null,
     totalPrice: 5,
     purchaseable: false,
     purchasing: false,
-    loading: false
+    loading: false,
+    error: false // we can see specific error by this state.
   };
+
+  // to retrieve our ingredients from backend...
+  componentDidMount() {
+    axios
+      .get("https://react-my-burger-f01f7.firebaseio.com/ingriedients.json")
+      .then(response => {
+        this.setState({ ingredients: response.data });
+      })
+      .catch(error => {
+        this.setState({ error: true });
+      });
+  }
 
   updatePurchaseState(ingredients) {
     const sum = Object.keys(ingredients)
@@ -113,16 +121,43 @@ class BurgerBuilder extends Component {
       disabledInfo[key] = disabledInfo[key] <= 0;
     }
 
-    // We can see spinner, when we waiting our order to send database
+    let orderSummary = null;
+    let burger = this.state.error ? (
+      <p>Ingredients can't be loaded!</p>
+    ) : (
+      <Spinner />
+    ); // if this error is true, we don"t want to show our spinner and show message.
+
+    // this statement check our ingredients are avalaible to use.
+    // while this is cehecking, users see only spinner.
+    if (this.state.ingredients) {
+      burger = (
+        <Auxiliary>
+          <Burger ingredients={this.state.ingredients} />{" "}
+          <BuildControls
+            ingredientAdded={this.addIngredientHandler}
+            ingredientRemoved={this.removeIngredientHandler}
+            disabled={disabledInfo}
+            purchaseable={this.state.purchaseable}
+            ordered={this.purchaseHandler}
+            price={this.state.totalPrice}
+          />
+        </Auxiliary>
+      );
+      orderSummary = (
+        <OrderSummary
+          ingredients={this.state.ingredients}
+          purchaseCancelled={this.purchaseCancelHandler}
+          purchaseContinued={this.purchaseContinueHandler}
+          price={this.state.totalPrice}
+        />
+      );
+    }
+
+    // after ingredients checking, we check  for the loadingstate to overwrite
+    // order summary when needed.
+    // We can see spinner, when we waiting our order to send database or getting ingredients from backend
     // depends on the internet speed etc.
-    let orderSummary = (
-      <OrderSummary
-        ingredients={this.state.ingredients}
-        purchaseCancelled={this.purchaseCancelHandler}
-        purchaseContinued={this.purchaseContinueHandler}
-        price={this.state.totalPrice}
-      />
-    );
     if (this.state.loading) {
       orderSummary = <Spinner />;
     }
@@ -135,18 +170,10 @@ class BurgerBuilder extends Component {
         >
           {orderSummary}
         </Modal>
-        <Burger ingredients={this.state.ingredients} />
-        <BuildControls
-          ingredientAdded={this.addIngredientHandler}
-          ingredientRemoved={this.removeIngredientHandler}
-          disabled={disabledInfo}
-          purchaseable={this.state.purchaseable}
-          ordered={this.purchaseHandler}
-          price={this.state.totalPrice}
-        />
+        {burger}
       </Auxiliary>
     );
   }
 }
 
-export default WithErrorHandler(BurgerBuilder,axios);
+export default WithErrorHandler(BurgerBuilder, axios);
