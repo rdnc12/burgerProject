@@ -7,7 +7,7 @@ import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
 class App extends React.Component {
   render() {
     return (<div>
-      <Layout>
+      <Layout> 
         <BurgerBuilder/>
       </Layout>
     </div>);

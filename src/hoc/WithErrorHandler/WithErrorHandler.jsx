@@ -9,18 +9,26 @@ const WithErrorHandler = (WrappedComponent, axios) => {
       error: null
     };
 
-    componentDidMount() {
-      axios.interceptors.request.use(req => {
+    componentWillMount() {
+      this.reqInterceptors = axios.interceptors.request.use(req => {
         this.setState({ error: null });
         return req;
       });
-      axios.interceptors.response // we can see that what error is.
+      this.resInterceptors = axios.interceptors.response // we can see that what error is.
         .use(
           res => res,
           error => {
             this.setState({ error: error });
           }
         );
+    }
+    // when we add this component to other component, that makes our system slow
+    // componentWillMount is called several time and this cause of leak of memory
+    // thats why we added it.
+    componentWillUnmount() {
+      console.log("Will Unmount", this.reqInterceptors, this.resInterceptors);
+      axios.interceptors.request.eject(this.reqInterceptors);
+      axios.interceptors.response.eject(this.resInterceptors);
     }
     //when we click this anywhere in page, this page will dissapear.
     errorConfirmedHandler = () => {
@@ -29,7 +37,10 @@ const WithErrorHandler = (WrappedComponent, axios) => {
     render() {
       return (
         <Auxiliary>
-          <Modal show={this.state.error} modalClosed={this.errorConfirmedHandler}>
+          <Modal
+            show={this.state.error}
+            modalClosed={this.errorConfirmedHandler}
+          >
             {this.state.error ? this.state.error.message : null}
           </Modal>
           <WrappedComponent {...this.props} />;
