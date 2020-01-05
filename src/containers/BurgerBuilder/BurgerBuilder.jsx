@@ -6,6 +6,7 @@ import Modal from "../../components/UI/Modal/Modal";
 import OrderSummary from "../../components/Burger/OrderSummary/OrderSummary";
 import Spinner from "../../components/UI/Spinner/Spinner";
 import WithErrorHandler from "../../hoc/WithErrorHandler/WithErrorHandler";
+import classes from "./BurgerBuilder.module.css";
 import axios from "../../axios-order";
 
 const INGREDIENT_PRICES = {
@@ -123,7 +124,9 @@ class BurgerBuilder extends Component {
 
     let orderSummary = null;
     let burger = this.state.error ? (
-      <p>Ingredients can't be loaded!</p>
+      <div className={classes.ErrorMessage}>
+        <span className={classes.ErrorText}>Ingredients can't be loaded!</span>
+      </div>
     ) : (
       <Spinner />
     ); // if this error is true, we don"t want to show our spinner and show message.
