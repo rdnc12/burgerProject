@@ -1,10 +1,14 @@
 import React, { Component } from "react";
+import {connect} from 'react-redux';
 
 import Button from "../../../components/UI/Button/Button";
 import Spinner from "../../../components/UI/Spinner/Spinner";
 import classes from "./ContactData.module.css";
 import axios from "../../../axios-order";
 import Input from "../../../components/UI/Input/Input";
+import WithErrorHandler from '../../../hoc/WithErrorHandler/WithErrorHandler'
+import * as actions from '../../../store/actions/index'
+
 class ContactData extends Component {
   state = {
     orderForm: {
@@ -95,7 +99,7 @@ class ContactData extends Component {
   orderHandler = event => {
     event.preventDefault();
     //console.log(this.props.ingredients);
-    this.setState({ loading: true });
+    
     const formData = {};
     // formElementIdentifier are country,name,zipcode,street...
     for (let formElementIdentifier in this.state.orderForm) {
@@ -104,17 +108,11 @@ class ContactData extends Component {
       ].value;
     }
     const order = {
-      ingredients: this.props.ingredients,
+      ingredients: this.props.ings,
       price: this.props.price,
       orderForm: formData
     };
-    axios
-      .post("/orders.json", order)
-      .then(response => {
-        this.setState({ loading: false });
-        this.props.history.push("/");
-      })
-      .catch(error => this.setState({ loading: false }));
+    this.props.onOrderBurger(order)
   };
 
   checkValidity(value, rules) {
@@ -200,4 +198,17 @@ class ContactData extends Component {
   }
 }
 
-export default ContactData;
+const mapStateToProps=state=>{
+  return {
+    ings:state.ingredients,
+    price:state.totalPrice
+  }
+};
+
+const mapDispatchToProps=dispatch=>{
+  return {
+    onOrderBurger: (orderData)=>dispatch(actions.purchaseBurgerStart(orderData))
+  }
+};
+
+export default connect(mapStateToProps)(WithErrorHandler(ContactData,axios));
