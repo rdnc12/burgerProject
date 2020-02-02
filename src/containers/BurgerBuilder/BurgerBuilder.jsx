@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import {connect} from 'react-redux'
+
 import Auxiliary from "../../hoc/Auxiliary/Auxiliary";
 import Burger from "../../components/Burger/Burger";
 import BuildControls from "../../components/Burger/BuildControls/BuildControls";
@@ -8,6 +10,7 @@ import Spinner from "../../components/UI/Spinner/Spinner";
 import WithErrorHandler from "../../hoc/WithErrorHandler/WithErrorHandler";
 import classes from "./BurgerBuilder.module.css";
 import axios from "../../axios-order";
+import * as burgerBuilderActions from '../../store/actions/index'
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -176,4 +179,18 @@ class BurgerBuilder extends Component {
   }
 }
 
-export default WithErrorHandler(BurgerBuilder, axios);
+const mapStateToProps= state=>{
+  return{
+    ings:state.ingredients
+  }
+}
+
+const mapDispatchToProps= dispatch=>{
+  return{
+    onIngredientAdded:(ingName)=> dispatch(burgerBuilderActions.addIngredient(ingName)),
+    onIngredientRemoved:(ingName)=> dispatch(burgerBuilderActions.removeIngredient(ingName))
+  }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(WithErrorHandler(BurgerBuilder, axios));
+// burgerbuilder connected to store
