@@ -26,42 +26,40 @@ class Checkout extends Component {
 
   checkoutCancelledHandler = () => {
     this.props.history.goBack();
-  };
-  checkoutContinuedHandler = () => {
-    this.props.history.replace("/checkout/contact-data");
-  };
-  render() {
+}
 
-    // when we get no ingredients
-    let summary =<Redirect to='/'/>;
-    
-    if(this.props.ings){
-      const purchaseRedirect= !this.props.purchased ?<Redirect to='/'/> : null;
+checkoutContinuedHandler = () => {
+    this.props.history.replace( '/checkout/contact-data' );
+}
 
-      summary=(<React.Fragment>
-        {purchaseRedirect}
-        <CheckoutSummary
-        ingredients={this.props.ings}
-        checkoutCancelled={this.checkoutCancelledHandler}
-        checkoutContinued={this.checkoutContinuedHandler}
-      />
-      <Route
-          path={this.props.match.path + "/contact-data"}
-          component={ContactData}
-        />
-        </React.Fragment> );
+render () {
+    let summary = <Redirect to="/" />
+    if ( this.props.ings ) {
+        const purchasedRedirect = this.props.purchased ? <Redirect to="/"/> : null;
+        summary = (
+            <div>
+                {purchasedRedirect}
+                <CheckoutSummary
+                    ingredients={this.props.ings}
+                    checkoutCancelled={this.checkoutCancelledHandler}
+                    checkoutContinued={this.checkoutContinuedHandler} />
+                <Route
+                    path={this.props.match.path + '/contact-data'}
+                    component={ContactData} />
+            </div>
+        );
     }
-    return  summary;
-     
-  }
+    return summary;
+}
 }
 
-const mapStateToProps =state=>{
-  return{
-    ings:state.burgerBuilder.ingredients,
-    purchased:state.order.purchased
-  }
+const mapStateToProps = state => {
+return {
+    ings: state.burgerBuilder.ingredients,
+    purchased: state.order.purchased
 }
+}
+
 
 
 
