@@ -93,5 +93,7 @@
   },
   "eslintConfig": {
     "extends": "react-app"
-  }
+  },
+  "homepage" : "http://react-burger.github.io/"
 }
+
